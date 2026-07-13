@@ -35,34 +35,36 @@ export function ProductsView({
 
   return (
     <section className="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden">
-      <div className="px-6 py-4 border-b border-slate-100 flex items-center justify-between gap-4 flex-wrap">
+      <div className="px-4 sm:px-6 py-4 border-b border-slate-100 flex items-center justify-between gap-4 flex-wrap">
         <div className="flex items-center gap-2.5">
           <Shirt size={18} className="text-slate-500" />
           <h2 className="text-base font-bold text-slate-800">Catalogue Produits</h2>
           <span className="text-xs text-slate-400 font-medium ml-1">{products.length} articles</span>
         </div>
 
-        <div className="flex items-center gap-3">
-          <div className="relative">
+        <div className="flex items-center gap-3 w-full sm:w-auto">
+          <div className="relative flex-1 sm:flex-none">
             <Search size={15} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
             <input
               value={searchQuery}
               onChange={(e) => onSearchChange(e.target.value)}
               placeholder="Rechercher un produit..."
-              className="pl-9 pr-3 py-2 rounded-xl border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500 w-56"
+              className="pl-9 pr-3 py-2 rounded-xl border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500 w-full sm:w-56"
             />
           </div>
           <button
             onClick={onAdd}
-            className="flex items-center gap-2 bg-emerald-600 hover:bg-emerald-700 text-white text-sm font-bold px-4 py-2.5 rounded-xl transition-colors cursor-pointer"
+            aria-label="Nouveau produit"
+            className="flex items-center gap-2 bg-emerald-600 hover:bg-emerald-700 text-white text-sm font-bold px-4 py-2.5 rounded-xl transition-colors cursor-pointer whitespace-nowrap flex-shrink-0"
           >
             <PlusCircle size={16} />
-            Nouveau produit
+            <span className="hidden sm:inline">Nouveau produit</span>
           </button>
         </div>
       </div>
 
-      <table className="w-full">
+      <div className="overflow-x-auto">
+      <table className="w-full min-w-[640px]">
         <thead className="bg-slate-50">
           <tr>
             {["Article", "Catégorie", "Taille", "Prix unitaire", "Stock", ""].map((h) => (
@@ -121,6 +123,7 @@ export function ProductsView({
           )}
         </tbody>
       </table>
+      </div>
 
       <Pagination page={currentPage} totalPages={totalPages} onPageChange={setPage} />
     </section>

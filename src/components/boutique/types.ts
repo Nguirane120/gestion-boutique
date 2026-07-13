@@ -19,4 +19,6 @@ export interface Activity {
   amount: number;
   date: string; // format ISO "aaaa-mm-jj"
   quantity?: number; // uniquement pour les ventes
+  unitPrice?: number; // prix de vente négocié, uniquement pour les ventes
+  catalogPrice?: number; // prix catalogue au moment de la vente, uniquement pour les ventes
 }

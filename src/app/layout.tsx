@@ -5,11 +5,11 @@ import "./globals.css";
 const geist = Geist({ variable: "--font-geist-sans", subsets: ["latin"] });
 
 export const metadata: Metadata = {
-  title: "Kiné Fashion — Gestion Boutique",
+  title: "Fatoush Store — Gestion Boutique",
   description: "Application de gestion de boutique de vêtements",
   appleWebApp: {
     capable: true,
-    title: "Kiné Fashion",
+    title: "Fatoush Store",
     statusBarStyle: "black-translucent",
   },
 };
@@ -25,7 +25,7 @@ export const viewport: Viewport = {
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="fr" className={`${geist.variable} h-full`}>
-      <body className="h-full overflow-hidden">{children}</body>
+      <body className="h-dvh overflow-hidden">{children}</body>
     </html>
   );
 }

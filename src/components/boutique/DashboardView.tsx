@@ -13,7 +13,7 @@ export function DashboardView({
   return (
     <>
       {/* KPI Cards */}
-      <section className="flex gap-4">
+      <section className="grid grid-cols-1 sm:grid-cols-3 gap-4">
         <KpiCard
           title="Ventes"
           value={kpi.ventes}
@@ -45,7 +45,7 @@ export function DashboardView({
 
       {/* Tableau Stock (aperçu) */}
       <section className="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden">
-        <div className="px-6 py-4 border-b border-slate-100 flex items-center justify-between">
+        <div className="px-4 sm:px-6 py-4 border-b border-slate-100 flex items-center justify-between gap-2 flex-wrap">
           <div className="flex items-center gap-2.5">
             <Shirt size={18} className="text-slate-500" />
             <h2 className="text-base font-bold text-slate-800">État du Stock</h2>
@@ -53,7 +53,8 @@ export function DashboardView({
           <span className="text-xs text-slate-400 font-medium">{products.length} articles</span>
         </div>
 
-        <table className="w-full">
+        <div className="overflow-x-auto">
+        <table className="w-full min-w-[640px]">
           <thead className="bg-slate-50">
             <tr>
               {["Article", "Catégorie", "Taille", "Prix unitaire", "Stock"].map((h) => (
@@ -87,6 +88,7 @@ export function DashboardView({
             ))}
           </tbody>
         </table>
+        </div>
       </section>
     </>
   );

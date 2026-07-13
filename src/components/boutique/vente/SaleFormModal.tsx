@@ -13,16 +13,25 @@ export function SaleFormModal({
 }: {
   products: StockItem[];
   onClose: () => void;
-  onSave: (productId: number, quantity: number, date: string) => void;
+  onSave: (productId: number, quantity: number, date: string, unitPrice: number) => void;
 }) {
   const sellable = products.filter((p) => p.stock > 0);
   const [productId, setProductId] = useState<number | "">(sellable[0]?.id ?? "");
   const [quantity, setQuantity]   = useState("1");
+  const [unitPrice, setUnitPrice] = useState(sellable[0] ? String(sellable[0].price) : "");
   const [date, setDate]           = useState(todayISO());
   const [error, setError]         = useState("");
 
   const selected = sellable.find((p) => p.id === productId);
-  const total = selected ? selected.price * (Number(quantity) || 0) : 0;
+  const unitPriceNum = Number(unitPrice) || 0;
+  const total = unitPriceNum * (Number(quantity) || 0);
+  const remise = selected ? selected.price - unitPriceNum : 0;
+
+  const handleProductChange = (id: number) => {
+    setProductId(id);
+    const product = sellable.find((p) => p.id === id);
+    setUnitPrice(product ? String(product.price) : "");
+  };
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -39,16 +48,20 @@ export function SaleFormModal({
       setError(`Stock insuffisant (${selected.stock} unités disponibles).`);
       return;
     }
+    if (!Number.isFinite(unitPriceNum) || unitPriceNum <= 0) {
+      setError("Le prix de vente doit être supérieur à zéro.");
+      return;
+    }
     if (!date) {
       setError("La date est obligatoire.");
       return;
     }
-    onSave(selected.id, qty, date);
+    onSave(selected.id, qty, date, unitPriceNum);
   };
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/40 px-4">
-      <div className="bg-white rounded-2xl shadow-xl w-full max-w-md">
+      <div className="bg-white rounded-2xl shadow-xl w-full max-w-md max-h-[90vh] overflow-y-auto">
         <div className="flex items-center justify-between px-6 py-4 border-b border-slate-100">
           <h3 className="text-base font-bold text-slate-900">Enregistrer une vente</h3>
           <button onClick={onClose} className="text-slate-400 hover:text-slate-600 cursor-pointer">
@@ -61,7 +74,7 @@ export function SaleFormModal({
             <label className="text-xs font-semibold text-slate-500 uppercase tracking-wide">Produit</label>
             <select
               value={productId}
-              onChange={(e) => setProductId(Number(e.target.value))}
+              onChange={(e) => handleProductChange(Number(e.target.value))}
               className="border border-slate-200 rounded-xl px-3.5 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500"
             >
               {sellable.length === 0 && <option value="">Aucun produit en stock</option>}
@@ -81,6 +94,30 @@ export function SaleFormModal({
               min={1}
               className="border border-slate-200 rounded-xl px-3.5 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500"
             />
+          </div>
+
+          <div className="flex flex-col gap-1.5">
+            <label className="text-xs font-semibold text-slate-500 uppercase tracking-wide">
+              Prix de vente (F CFA)
+            </label>
+            <NumberInput
+              value={unitPrice}
+              onChange={setUnitPrice}
+              min={0}
+              placeholder="0"
+              className="border border-slate-200 rounded-xl px-3.5 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500"
+            />
+            {selected && (
+              <p className="text-xs text-slate-400">
+                Prix catalogue : {formatCFA(selected.price)}
+                {remise > 0 && (
+                  <span className="text-emerald-600 font-semibold"> · Remise de {formatCFA(remise)} après marchandage</span>
+                )}
+                {remise < 0 && (
+                  <span className="text-orange-600 font-semibold"> · Majoration de {formatCFA(-remise)} par rapport au catalogue</span>
+                )}
+              </p>
+            )}
           </div>
 
           <div className="flex flex-col gap-1.5">

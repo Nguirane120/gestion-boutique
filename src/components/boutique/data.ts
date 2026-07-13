@@ -14,7 +14,7 @@ export const INITIAL_PRODUCTS: StockItem[] = [
   { id: 4, name: "Blouse Dorée",  category: "Haut",     size: "L",  price: 16_500, stock: 7  },
 ];
 
-export const CATEGORIES = ["Robe", "Pantalon", "Jupe", "Haut", "Chaussures", "Accessoire"];
+export const INITIAL_CATEGORIES = ["Robe", "Pantalon", "Jupe", "Haut", "Chaussures", "Accessoire"];
 
 export const ACTIVITIES: Activity[] = [
   { id: 1, type: "vente",   label: "Robes Fleuries", amount: 37_000, date: "2026-07-13", quantity: 2 },
@@ -30,7 +30,7 @@ export const NAV_ITEMS = [
 ];
 
 export const NAV_HEADERS: Record<NavItem, { title: string; subtitle: string }> = {
-  dashboard: { title: "Tableau de bord",       subtitle: "Suivi · Boutique Kiné Fashion" },
+  dashboard: { title: "Tableau de bord",       subtitle: "Suivi · Boutique Fatoush Store" },
   stock:     { title: "Gestion des Produits",  subtitle: "Ajoutez, modifiez et suivez votre catalogue" },
   ventes:    { title: "Ventes",                subtitle: "Historique de vos ventes" },
   depenses:  { title: "Dépenses",              subtitle: "Historique de vos dépenses" },

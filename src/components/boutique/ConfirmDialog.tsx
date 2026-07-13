@@ -15,7 +15,7 @@ export function ConfirmDialog({
 }) {
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/40 px-4">
-      <div className="bg-white rounded-2xl shadow-xl w-full max-w-sm">
+      <div className="bg-white rounded-2xl shadow-xl w-full max-w-sm max-h-[90vh] overflow-y-auto">
         <div className="px-6 pt-6 flex flex-col items-center text-center gap-3">
           <div className="bg-red-50 p-3 rounded-full">
             <AlertTriangle size={22} className="text-red-600" />

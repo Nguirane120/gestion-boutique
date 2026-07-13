@@ -2,8 +2,8 @@ import type { MetadataRoute } from "next";
 
 export default function manifest(): MetadataRoute.Manifest {
   return {
-    name: "Kiné Fashion — Gestion Boutique",
-    short_name: "Kiné Fashion",
+    name: "Fatoush Store — Gestion Boutique",
+    short_name: "Fatoush Store",
     description: "Application de gestion de boutique de vêtements",
     start_url: "/",
     display: "standalone",

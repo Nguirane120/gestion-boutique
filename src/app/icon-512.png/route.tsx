@@ -21,7 +21,7 @@ export async function GET() {
           fontFamily: "sans-serif",
         }}
       >
-        K
+        F
       </div>
     ),
     { width: SIZE, height: SIZE }

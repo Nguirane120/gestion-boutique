@@ -1,31 +1,49 @@
 "use client";
 
 import { useState } from "react";
-import { X } from "lucide-react";
-import { CATEGORIES } from "../data";
+import { Plus, X } from "lucide-react";
 import { NumberInput } from "../NumberInput";
 import type { ProductFormData, StockItem } from "../types";
 
 export function ProductFormModal({
   initialData,
+  categories,
+  onAddCategory,
   onClose,
   onSave,
 }: {
   initialData: StockItem | null;
+  categories: string[];
+  onAddCategory: (name: string) => void;
   onClose: () => void;
   onSave: (data: ProductFormData) => void;
 }) {
   const [name, setName]         = useState(initialData?.name ?? "");
-  const [category, setCategory] = useState(initialData?.category ?? CATEGORIES[0]);
+  const [category, setCategory] = useState(initialData?.category ?? categories[0] ?? "");
   const [size, setSize]         = useState(initialData?.size ?? "");
   const [price, setPrice]       = useState(initialData ? String(initialData.price) : "");
   const [stock, setStock]       = useState(initialData ? String(initialData.stock) : "");
   const [error, setError]       = useState("");
+  const [isAddingCategory, setIsAddingCategory] = useState(false);
+  const [newCategory, setNewCategory]           = useState("");
+
+  const handleAddCategory = () => {
+    const trimmed = newCategory.trim();
+    if (!trimmed) return;
+    onAddCategory(trimmed);
+    setCategory(trimmed);
+    setNewCategory("");
+    setIsAddingCategory(false);
+  };
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!name.trim() || !size.trim()) {
       setError("Le nom et la taille sont obligatoires.");
+      return;
+    }
+    if (!category) {
+      setError("Sélectionnez ou créez une catégorie.");
       return;
     }
     const priceNum = Number(price);
@@ -39,7 +57,7 @@ export function ProductFormModal({
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/40 px-4">
-      <div className="bg-white rounded-2xl shadow-xl w-full max-w-md">
+      <div className="bg-white rounded-2xl shadow-xl w-full max-w-md max-h-[90vh] overflow-y-auto">
         <div className="flex items-center justify-between px-6 py-4 border-b border-slate-100">
           <h3 className="text-base font-bold text-slate-900">
             {initialData ? "Modifier le produit" : "Nouveau produit"}
@@ -65,36 +83,74 @@ export function ProductFormModal({
             />
           </div>
 
-          <div className="grid grid-cols-2 gap-4">
-            <div className="flex flex-col gap-1.5">
+          <div className="flex flex-col gap-1.5">
+            <div className="flex items-center justify-between gap-2">
               <label className="text-xs font-semibold text-slate-500 uppercase tracking-wide">
                 Catégorie
               </label>
+              <button
+                type="button"
+                onClick={() => setIsAddingCategory((v) => !v)}
+                className="inline-flex items-center gap-1 text-xs font-bold text-emerald-700 bg-emerald-50 hover:bg-emerald-100 px-2.5 py-1.5 rounded-lg transition-colors cursor-pointer whitespace-nowrap"
+              >
+                {isAddingCategory ? (
+                  <>
+                    <X size={14} strokeWidth={2.5} />
+                    Annuler
+                  </>
+                ) : (
+                  <>
+                    <Plus size={14} strokeWidth={2.5} />
+                    Nouvelle catégorie
+                  </>
+                )}
+              </button>
+            </div>
+
+            {isAddingCategory ? (
+              <div className="flex items-center gap-2 w-full">
+                <input
+                  value={newCategory}
+                  onChange={(e) => setNewCategory(e.target.value)}
+                  placeholder="Ex : Ceinture"
+                  autoFocus
+                  className="flex-1 min-w-0 border border-slate-200 rounded-xl px-3.5 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                />
+                <button
+                  type="button"
+                  onClick={handleAddCategory}
+                  className="px-3.5 py-2.5 rounded-xl text-sm font-bold text-white bg-emerald-600 hover:bg-emerald-700 transition-colors cursor-pointer flex-shrink-0"
+                >
+                  Ajouter
+                </button>
+              </div>
+            ) : (
               <select
                 value={category}
                 onChange={(e) => setCategory(e.target.value)}
-                className="border border-slate-200 rounded-xl px-3.5 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                className="w-full border border-slate-200 rounded-xl px-3.5 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500"
               >
-                {CATEGORIES.map((c) => (
+                {categories.length === 0 && <option value="">Aucune catégorie</option>}
+                {categories.map((c) => (
                   <option key={c} value={c}>{c}</option>
                 ))}
               </select>
-            </div>
-
-            <div className="flex flex-col gap-1.5">
-              <label className="text-xs font-semibold text-slate-500 uppercase tracking-wide">
-                Taille
-              </label>
-              <input
-                value={size}
-                onChange={(e) => setSize(e.target.value)}
-                placeholder="Ex : M, 38..."
-                className="border border-slate-200 rounded-xl px-3.5 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500"
-              />
-            </div>
+            )}
           </div>
 
-          <div className="grid grid-cols-2 gap-4">
+          <div className="flex flex-col gap-1.5">
+            <label className="text-xs font-semibold text-slate-500 uppercase tracking-wide">
+              Taille
+            </label>
+            <input
+              value={size}
+              onChange={(e) => setSize(e.target.value)}
+              placeholder="Ex : M, 38..."
+              className="border border-slate-200 rounded-xl px-3.5 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500"
+            />
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div className="flex flex-col gap-1.5">
               <label className="text-xs font-semibold text-slate-500 uppercase tracking-wide">
                 Prix unitaire (F CFA)
