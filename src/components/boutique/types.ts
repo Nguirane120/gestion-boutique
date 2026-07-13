@@ -1,5 +1,5 @@
 export type Period = "Jour" | "Semaine" | "Mois";
-export type NavItem = "dashboard" | "stock" | "finances";
+export type NavItem = "dashboard" | "stock" | "ventes" | "depenses";
 
 export interface StockItem {
   id: number;
@@ -17,5 +17,6 @@ export interface Activity {
   type: "vente" | "depense";
   label: string;
   amount: number;
-  time: string;
+  date: string; // format ISO "aaaa-mm-jj"
+  quantity?: number; // uniquement pour les ventes
 }

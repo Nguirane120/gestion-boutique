@@ -1,4 +1,4 @@
-import { LayoutDashboard, Package, TrendingUp } from "lucide-react";
+import { LayoutDashboard, MinusCircle, Package, ShoppingBag } from "lucide-react";
 import type { Activity, NavItem, Period, StockItem } from "./types";
 
 export const INITIAL_KPI_TOTALS: Record<Period, { ventes: number; depenses: number }> = {
@@ -17,19 +17,21 @@ export const INITIAL_PRODUCTS: StockItem[] = [
 export const CATEGORIES = ["Robe", "Pantalon", "Jupe", "Haut", "Chaussures", "Accessoire"];
 
 export const ACTIVITIES: Activity[] = [
-  { id: 1, type: "vente",   label: "2× Robes Fleuries", amount: 37_000, time: "Il y a 12 min" },
-  { id: 2, type: "depense", label: "Facture Senelec",    amount: 45_000, time: "Il y a 1h"     },
-  { id: 3, type: "vente",   label: "1× Jean Slim",       amount: 22_000, time: "Il y a 2h"     },
+  { id: 1, type: "vente",   label: "Robes Fleuries", amount: 37_000, date: "2026-07-13", quantity: 2 },
+  { id: 2, type: "depense", label: "Facture Senelec", amount: 45_000, date: "2026-07-12" },
+  { id: 3, type: "vente",   label: "Jean Slim",       amount: 22_000, date: "2026-07-11", quantity: 1 },
 ];
 
 export const NAV_ITEMS = [
   { id: "dashboard" as NavItem, label: "Tableau de bord", icon: LayoutDashboard },
   { id: "stock"     as NavItem, label: "Mon Stock",        icon: Package          },
-  { id: "finances"  as NavItem, label: "Flux Financiers",  icon: TrendingUp       },
+  { id: "ventes"    as NavItem, label: "Ventes",           icon: ShoppingBag      },
+  { id: "depenses"  as NavItem, label: "Dépenses",         icon: MinusCircle      },
 ];
 
 export const NAV_HEADERS: Record<NavItem, { title: string; subtitle: string }> = {
   dashboard: { title: "Tableau de bord",       subtitle: "Suivi · Boutique Kiné Fashion" },
   stock:     { title: "Gestion des Produits",  subtitle: "Ajoutez, modifiez et suivez votre catalogue" },
-  finances:  { title: "Flux Financiers",       subtitle: "Ventes, dépenses et bénéfices" },
+  ventes:    { title: "Ventes",                subtitle: "Historique de vos ventes" },
+  depenses:  { title: "Dépenses",              subtitle: "Historique de vos dépenses" },
 };

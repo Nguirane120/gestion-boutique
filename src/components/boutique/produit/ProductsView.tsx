@@ -1,6 +1,10 @@
+import { useState } from "react";
 import { Pencil, PlusCircle, Search, Shirt, Trash2 } from "lucide-react";
+import { Pagination } from "../Pagination";
 import { StockBadge } from "./StockBadge";
 import type { StockItem } from "../types";
+
+const PAGE_SIZE = 5;
 
 export function ProductsView({
   products,
@@ -17,11 +21,17 @@ export function ProductsView({
   onEdit: (item: StockItem) => void;
   onDelete: (id: number) => void;
 }) {
+  const [page, setPage] = useState(1);
+
   const filtered = products.filter(
     (p) =>
       p.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
       p.category.toLowerCase().includes(searchQuery.toLowerCase())
   );
+
+  const totalPages = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE));
+  const currentPage = Math.min(page, totalPages);
+  const paginated = filtered.slice((currentPage - 1) * PAGE_SIZE, currentPage * PAGE_SIZE);
 
   return (
     <section className="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden">
@@ -66,7 +76,7 @@ export function ProductsView({
           </tr>
         </thead>
         <tbody>
-          {filtered.map((item, i) => (
+          {paginated.map((item, i) => (
             <tr
               key={item.id}
               className={`border-t border-slate-50 hover:bg-slate-50/70 transition-colors ${
@@ -111,6 +121,8 @@ export function ProductsView({
           )}
         </tbody>
       </table>
+
+      <Pagination page={currentPage} totalPages={totalPages} onPageChange={setPage} />
     </section>
   );
 }

@@ -3,16 +3,18 @@
 import { useState } from "react";
 import { X } from "lucide-react";
 import { NumberInput } from "../NumberInput";
+import { todayISO } from "../utils";
 
 export function ExpenseFormModal({
   onClose,
   onSave,
 }: {
   onClose: () => void;
-  onSave: (label: string, amount: number) => void;
+  onSave: (label: string, amount: number, date: string) => void;
 }) {
   const [label, setLabel]   = useState("");
   const [amount, setAmount] = useState("");
+  const [date, setDate]     = useState(todayISO());
   const [error, setError]   = useState("");
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -26,7 +28,11 @@ export function ExpenseFormModal({
       setError("Le montant doit être supérieur à zéro.");
       return;
     }
-    onSave(label.trim(), amountNum);
+    if (!date) {
+      setError("La date est obligatoire.");
+      return;
+    }
+    onSave(label.trim(), amountNum, date);
   };
 
   return (
@@ -57,6 +63,16 @@ export function ExpenseFormModal({
               onChange={setAmount}
               min={0}
               placeholder="0"
+              className="border border-slate-200 rounded-xl px-3.5 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500"
+            />
+          </div>
+
+          <div className="flex flex-col gap-1.5">
+            <label className="text-xs font-semibold text-slate-500 uppercase tracking-wide">Date</label>
+            <input
+              type="date"
+              value={date}
+              onChange={(e) => setDate(e.target.value)}
               className="border border-slate-200 rounded-xl px-3.5 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500"
             />
           </div>

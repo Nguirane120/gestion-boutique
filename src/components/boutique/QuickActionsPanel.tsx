@@ -1,6 +1,6 @@
 import { ArrowDownRight, ArrowUpRight, CheckCircle2, MinusCircle, PlusCircle } from "lucide-react";
 import type { Activity, Period } from "./types";
-import { formatCFA } from "./utils";
+import { formatCFA, formatDate } from "./utils";
 
 export function QuickActionsPanel({
   activePeriod,
@@ -122,10 +122,10 @@ export function QuickActionsPanel({
                 </div>
                 <div className="flex-1 min-w-0">
                   <p className="text-sm font-semibold text-slate-700 leading-snug">
-                    {act.type === "vente" ? "Vente" : "Dépense"} : {act.label}
+                    {act.type === "vente" ? "Vente" : "Dépense"} : {act.quantity ? `${act.quantity}× ` : ""}{act.label}
                   </p>
                   <div className="flex items-center justify-between mt-1.5">
-                    <span className="text-xs text-slate-400">{act.time}</span>
+                    <span className="text-xs text-slate-400">{formatDate(act.date)}</span>
                     <span
                       className={`text-sm font-extrabold ${
                         act.type === "vente" ? "text-green-600" : "text-red-500"

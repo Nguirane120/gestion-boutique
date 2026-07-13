@@ -1,17 +1,19 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { ACTIVITIES, INITIAL_KPI_TOTALS, INITIAL_PRODUCTS, NAV_HEADERS } from "./data";
 import { ConfirmDialog } from "./ConfirmDialog";
 import { DashboardView } from "./DashboardView";
+import { DepensesView } from "./depense/DepensesView";
 import { ExpenseFormModal } from "./depense/ExpenseFormModal";
-import { FinancesView } from "./FinancesView";
 import { ProductFormModal } from "./produit/ProductFormModal";
 import { ProductsView } from "./produit/ProductsView";
 import { QuickActionsPanel } from "./QuickActionsPanel";
 import { SaleFormModal } from "./vente/SaleFormModal";
+import { VentesView } from "./vente/VentesView";
 import { Sidebar } from "./Sidebar";
 import type { NavItem, Period, ProductFormData, StockItem } from "./types";
+import { isInPeriod, todayISO } from "./utils";
 
 export default function BoutiquePage() {
   const [activePeriod, setActivePeriod] = useState<Period>("Semaine");
@@ -30,6 +32,17 @@ export default function BoutiquePage() {
   const [isSaleFormOpen, setIsSaleFormOpen]       = useState(false);
   const [isExpenseFormOpen, setIsExpenseFormOpen] = useState(false);
 
+  // `today` reste `null` le temps du premier rendu (SSR + hydratation) pour
+  // éviter tout écart entre le HTML serveur et le client, puis se met à jour
+  // une fois monté côté navigateur.
+  const [today, setToday] = useState<string | null>(null);
+  useEffect(() => {
+    // Lecture ponctuelle de la date du jour au montage (valeur client-only,
+    // cf. doc Next.js "preventing-flash-before-hydration" > Date updates live).
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    setToday(todayISO());
+  }, []);
+
   const periods: Period[] = ["Jour", "Semaine", "Mois"];
   const header  = NAV_HEADERS[activeNav];
   const kpi = {
@@ -37,8 +50,13 @@ export default function BoutiquePage() {
     depenses: kpiTotals[activePeriod].depenses,
     benefice: kpiTotals[activePeriod].ventes - kpiTotals[activePeriod].depenses,
   };
+  const periodActivities = today
+    ? activities.filter((a) => isInPeriod(a.date, activePeriod, today))
+    : activities;
+  const ventesActivities   = periodActivities.filter((a) => a.type === "vente");
+  const depensesActivities = periodActivities.filter((a) => a.type === "depense");
 
-  const handleRecordSale = (productId: number, quantity: number) => {
+  const handleRecordSale = (productId: number, quantity: number, date: string) => {
     const product = products.find((p) => p.id === productId);
     if (!product) return;
     const amount = product.price * quantity;
@@ -55,9 +73,10 @@ export default function BoutiquePage() {
       {
         id: prev.length ? Math.max(...prev.map((a) => a.id)) + 1 : 1,
         type: "vente" as const,
-        label: `${quantity}× ${product.name}`,
+        label: product.name,
         amount,
-        time: "À l'instant",
+        date,
+        quantity,
       },
       ...prev,
     ]);
@@ -66,7 +85,7 @@ export default function BoutiquePage() {
     setTimeout(() => setSaleFlash(false), 2000);
   };
 
-  const handleRecordExpense = (label: string, amount: number) => {
+  const handleRecordExpense = (label: string, amount: number, date: string) => {
     setKpiTotals((prev) => ({
       Jour:    { ...prev.Jour,    depenses: prev.Jour.depenses + amount },
       Semaine: { ...prev.Semaine, depenses: prev.Semaine.depenses + amount },
@@ -78,7 +97,7 @@ export default function BoutiquePage() {
         type: "depense" as const,
         label,
         amount,
-        time: "À l'instant",
+        date,
       },
       ...prev,
     ]);
@@ -138,7 +157,7 @@ export default function BoutiquePage() {
             <p className="text-sm text-slate-400 mt-0.5">{header.subtitle}</p>
           </div>
 
-          {/* Sélecteur de période (dashboard / finances uniquement) */}
+          {/* Sélecteur de période (masqué sur la page Stock) */}
           {activeNav !== "stock" && (
             <div className="flex items-center bg-slate-100 rounded-xl p-1 gap-1">
               {periods.map((p) => (
@@ -173,10 +192,16 @@ export default function BoutiquePage() {
             />
           )}
 
-          {activeNav === "finances" && (
-            <FinancesView
-              activities={activities}
+          {activeNav === "ventes" && (
+            <VentesView
+              ventes={ventesActivities}
               onNewSale={() => setIsSaleFormOpen(true)}
+            />
+          )}
+
+          {activeNav === "depenses" && (
+            <DepensesView
+              depenses={depensesActivities}
               onNewExpense={() => setIsExpenseFormOpen(true)}
             />
           )}

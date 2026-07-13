@@ -1,0 +1,12 @@
+{
+  "permissions": {
+    "allow": [
+      "Read(//tmp/**)",
+      "Bash(ls /tmp/icon192.png /tmp/icon512.png /tmp/appleicon.png 2>&1; ps aux | grep \"next start\" | grep -v grep)",
+      "Bash(rm -f /tmp/icon192.png /tmp/icon512.png /tmp/appleicon.png; ps aux | grep \"next start\" | grep -v grep; echo ok)"
+    ],
+    "additionalDirectories": [
+      "/tmp"
+    ]
+  }
+}

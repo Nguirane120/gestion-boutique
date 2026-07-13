@@ -4,7 +4,7 @@ import { useState } from "react";
 import { X } from "lucide-react";
 import { NumberInput } from "../NumberInput";
 import type { StockItem } from "../types";
-import { formatCFA } from "../utils";
+import { formatCFA, todayISO } from "../utils";
 
 export function SaleFormModal({
   products,
@@ -13,11 +13,12 @@ export function SaleFormModal({
 }: {
   products: StockItem[];
   onClose: () => void;
-  onSave: (productId: number, quantity: number) => void;
+  onSave: (productId: number, quantity: number, date: string) => void;
 }) {
   const sellable = products.filter((p) => p.stock > 0);
   const [productId, setProductId] = useState<number | "">(sellable[0]?.id ?? "");
   const [quantity, setQuantity]   = useState("1");
+  const [date, setDate]           = useState(todayISO());
   const [error, setError]         = useState("");
 
   const selected = sellable.find((p) => p.id === productId);
@@ -38,7 +39,11 @@ export function SaleFormModal({
       setError(`Stock insuffisant (${selected.stock} unités disponibles).`);
       return;
     }
-    onSave(selected.id, qty);
+    if (!date) {
+      setError("La date est obligatoire.");
+      return;
+    }
+    onSave(selected.id, qty, date);
   };
 
   return (
@@ -74,6 +79,16 @@ export function SaleFormModal({
               value={quantity}
               onChange={setQuantity}
               min={1}
+              className="border border-slate-200 rounded-xl px-3.5 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500"
+            />
+          </div>
+
+          <div className="flex flex-col gap-1.5">
+            <label className="text-xs font-semibold text-slate-500 uppercase tracking-wide">Date</label>
+            <input
+              type="date"
+              value={date}
+              onChange={(e) => setDate(e.target.value)}
               className="border border-slate-200 rounded-xl px-3.5 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500"
             />
           </div>
