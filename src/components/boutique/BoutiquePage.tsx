@@ -2,7 +2,11 @@
 
 import { useEffect, useState } from "react";
 import { Menu } from "lucide-react";
-import { ACTIVITIES, INITIAL_CATEGORIES, INITIAL_KPI_TOTALS, INITIAL_PRODUCTS, NAV_HEADERS } from "./data";
+import { useAuth } from "@/lib/auth/AuthContext";
+import { addCategory, subscribeCategories } from "@/lib/firestore/categories";
+import { recordExpense, recordSale, subscribeActivities } from "@/lib/firestore/activities";
+import { addProduct, deleteProduct, subscribeProducts, updateProduct } from "@/lib/firestore/products";
+import { NAV_HEADERS } from "./data";
 import { ConfirmDialog } from "./ConfirmDialog";
 import { DashboardView } from "./DashboardView";
 import { DepensesView } from "./depense/DepensesView";
@@ -12,26 +16,40 @@ import { ProductsView } from "./produit/ProductsView";
 import { SaleFormModal } from "./vente/SaleFormModal";
 import { VentesView } from "./vente/VentesView";
 import { Sidebar } from "./Sidebar";
-import type { NavItem, Period, ProductFormData, StockItem } from "./types";
+import type { Activity, NavItem, Period, ProductFormData, StockItem } from "./types";
 import { isInPeriod, todayISO } from "./utils";
 
 export default function BoutiquePage() {
+  const { user } = useAuth();
+  const uid = user!.uid;
+
   const [activePeriod, setActivePeriod] = useState<Period>("Semaine");
   const [activeNav, setActiveNav]       = useState<NavItem>("dashboard");
 
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
-  const [products, setProducts]             = useState<StockItem[]>(INITIAL_PRODUCTS);
-  const [categories, setCategories]         = useState<string[]>(INITIAL_CATEGORIES);
+  const [products, setProducts]             = useState<StockItem[]>([]);
+  const [categories, setCategories]         = useState<string[]>([]);
   const [searchQuery, setSearchQuery]       = useState("");
   const [isFormOpen, setIsFormOpen]         = useState(false);
   const [editingProduct, setEditingProduct] = useState<StockItem | null>(null);
   const [deleteTarget, setDeleteTarget]     = useState<StockItem | null>(null);
+  const [isDeleting, setIsDeleting]         = useState(false);
 
-  const [kpiTotals, setKpiTotals]                 = useState<Record<Period, { ventes: number; depenses: number }>>(INITIAL_KPI_TOTALS);
-  const [activities, setActivities]               = useState(ACTIVITIES);
+  const [activities, setActivities]               = useState<Activity[]>([]);
   const [isSaleFormOpen, setIsSaleFormOpen]       = useState(false);
   const [isExpenseFormOpen, setIsExpenseFormOpen] = useState(false);
+
+  useEffect(() => {
+    const unsubscribeProducts   = subscribeProducts(uid, setProducts);
+    const unsubscribeActivities = subscribeActivities(uid, setActivities);
+    const unsubscribeCategories = subscribeCategories(uid, setCategories);
+    return () => {
+      unsubscribeProducts();
+      unsubscribeActivities();
+      unsubscribeCategories();
+    };
+  }, [uid]);
 
   // `today` reste `null` le temps du premier rendu (SSR + hydratation) pour
   // éviter tout écart entre le HTML serveur et le client, puis se met à jour
@@ -46,63 +64,35 @@ export default function BoutiquePage() {
 
   const periods: Period[] = ["Jour", "Semaine", "Mois"];
   const header  = NAV_HEADERS[activeNav];
-  const kpi = {
-    ventes: kpiTotals[activePeriod].ventes,
-    depenses: kpiTotals[activePeriod].depenses,
-    benefice: kpiTotals[activePeriod].ventes - kpiTotals[activePeriod].depenses,
-  };
   const periodActivities = today
     ? activities.filter((a) => isInPeriod(a.date, activePeriod, today))
     : activities;
   const ventesActivities   = periodActivities.filter((a) => a.type === "vente");
   const depensesActivities = periodActivities.filter((a) => a.type === "depense");
-
-  const handleRecordSale = (productId: number, quantity: number, date: string, unitPrice: number) => {
-    const product = products.find((p) => p.id === productId);
-    if (!product) return;
-    const amount = unitPrice * quantity;
-
-    setProducts((prev) =>
-      prev.map((p) => (p.id === productId ? { ...p, stock: p.stock - quantity } : p))
-    );
-    setKpiTotals((prev) => ({
-      Jour:    { ...prev.Jour,    ventes: prev.Jour.ventes + amount },
-      Semaine: { ...prev.Semaine, ventes: prev.Semaine.ventes + amount },
-      Mois:    { ...prev.Mois,    ventes: prev.Mois.ventes + amount },
-    }));
-    setActivities((prev) => [
-      {
-        id: prev.length ? Math.max(...prev.map((a) => a.id)) + 1 : 1,
-        type: "vente" as const,
-        label: product.name,
-        amount,
-        date,
-        quantity,
-        unitPrice,
-        catalogPrice: product.price,
-      },
-      ...prev,
-    ]);
-    setIsSaleFormOpen(false);
+  const kpi = {
+    ventes: ventesActivities.reduce((sum, a) => sum + a.amount, 0),
+    depenses: depensesActivities.reduce((sum, a) => sum + a.amount, 0),
+    benefice:
+      ventesActivities.reduce((sum, a) => sum + a.amount, 0) -
+      depensesActivities.reduce((sum, a) => sum + a.amount, 0),
   };
 
-  const handleRecordExpense = (label: string, amount: number, date: string) => {
-    setKpiTotals((prev) => ({
-      Jour:    { ...prev.Jour,    depenses: prev.Jour.depenses + amount },
-      Semaine: { ...prev.Semaine, depenses: prev.Semaine.depenses + amount },
-      Mois:    { ...prev.Mois,    depenses: prev.Mois.depenses + amount },
-    }));
-    setActivities((prev) => [
-      {
-        id: prev.length ? Math.max(...prev.map((a) => a.id)) + 1 : 1,
-        type: "depense" as const,
-        label,
-        amount,
-        date,
-      },
-      ...prev,
-    ]);
-    setIsExpenseFormOpen(false);
+  const handleRecordSale = async (productId: string, quantity: number, date: string, unitPrice: number) => {
+    try {
+      await recordSale(uid, productId, quantity, date, unitPrice);
+      setIsSaleFormOpen(false);
+    } catch (err) {
+      alert(err instanceof Error ? err.message : "Impossible d'enregistrer la vente.");
+    }
+  };
+
+  const handleRecordExpense = async (label: string, amount: number, date: string) => {
+    try {
+      await recordExpense(uid, label, amount, date);
+      setIsExpenseFormOpen(false);
+    } catch {
+      alert("Impossible d'enregistrer la dépense.");
+    }
   };
 
   const openAddForm = () => {
@@ -120,33 +110,44 @@ export default function BoutiquePage() {
     setEditingProduct(null);
   };
 
-  const handleSaveProduct = (data: ProductFormData) => {
-    if (editingProduct) {
-      setProducts((prev) =>
-        prev.map((p) => (p.id === editingProduct.id ? { ...p, ...data } : p))
-      );
-    } else {
-      const newId = products.length ? Math.max(...products.map((p) => p.id)) + 1 : 1;
-      setProducts((prev) => [...prev, { id: newId, ...data }]);
+  const handleSaveProduct = async (data: ProductFormData) => {
+    try {
+      if (editingProduct) {
+        await updateProduct(uid, editingProduct.id, data);
+      } else {
+        await addProduct(uid, data);
+      }
+      closeForm();
+    } catch {
+      alert("Impossible d'enregistrer ce produit.");
     }
-    closeForm();
   };
 
-  const handleDeleteProduct = (id: number) => {
+  const handleDeleteProduct = (id: string) => {
     const product = products.find((p) => p.id === id);
     if (product) setDeleteTarget(product);
   };
 
-  const confirmDeleteProduct = () => {
+  const confirmDeleteProduct = async () => {
     if (!deleteTarget) return;
-    setProducts((prev) => prev.filter((p) => p.id !== deleteTarget.id));
-    setDeleteTarget(null);
+    setIsDeleting(true);
+    try {
+      await deleteProduct(uid, deleteTarget.id);
+      setDeleteTarget(null);
+    } catch {
+      alert("Impossible de supprimer ce produit.");
+    } finally {
+      setIsDeleting(false);
+    }
   };
 
-  const handleAddCategory = (name: string) => {
-    setCategories((prev) =>
-      prev.some((c) => c.toLowerCase() === name.toLowerCase()) ? prev : [...prev, name]
-    );
+  const handleAddCategory = async (name: string) => {
+    if (categories.some((c) => c.toLowerCase() === name.toLowerCase())) return;
+    try {
+      await addCategory(uid, name);
+    } catch {
+      alert("Impossible d'ajouter cette catégorie.");
+    }
   };
 
   return (
@@ -259,6 +260,7 @@ export default function BoutiquePage() {
           title="Supprimer ce produit ?"
           message={`« ${deleteTarget.name} » sera définitivement retiré du catalogue.`}
           confirmLabel="Supprimer"
+          isLoading={isDeleting}
           onConfirm={confirmDeleteProduct}
           onCancel={() => setDeleteTarget(null)}
         />

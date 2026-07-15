@@ -2,7 +2,7 @@ export type Period = "Jour" | "Semaine" | "Mois";
 export type NavItem = "dashboard" | "stock" | "ventes" | "depenses";
 
 export interface StockItem {
-  id: number;
+  id: string;
   name: string;
   category: string;
   size: string;
@@ -13,7 +13,7 @@ export interface StockItem {
 export type ProductFormData = Omit<StockItem, "id">;
 
 export interface Activity {
-  id: number;
+  id: string;
   type: "vente" | "depense";
   label: string;
   amount: number;

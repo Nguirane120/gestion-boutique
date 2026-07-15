@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { X } from "lucide-react";
+import { Loader2, X } from "lucide-react";
 import { NumberInput } from "../NumberInput";
 import type { StockItem } from "../types";
 import { formatCFA, todayISO } from "../utils";
@@ -13,27 +13,28 @@ export function SaleFormModal({
 }: {
   products: StockItem[];
   onClose: () => void;
-  onSave: (productId: number, quantity: number, date: string, unitPrice: number) => void;
+  onSave: (productId: string, quantity: number, date: string, unitPrice: number) => Promise<void> | void;
 }) {
   const sellable = products.filter((p) => p.stock > 0);
-  const [productId, setProductId] = useState<number | "">(sellable[0]?.id ?? "");
+  const [productId, setProductId] = useState<string>(sellable[0]?.id ?? "");
   const [quantity, setQuantity]   = useState("1");
   const [unitPrice, setUnitPrice] = useState(sellable[0] ? String(sellable[0].price) : "");
   const [date, setDate]           = useState(todayISO());
   const [error, setError]         = useState("");
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const selected = sellable.find((p) => p.id === productId);
   const unitPriceNum = Number(unitPrice) || 0;
   const total = unitPriceNum * (Number(quantity) || 0);
   const remise = selected ? selected.price - unitPriceNum : 0;
 
-  const handleProductChange = (id: number) => {
+  const handleProductChange = (id: string) => {
     setProductId(id);
     const product = sellable.find((p) => p.id === id);
     setUnitPrice(product ? String(product.price) : "");
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     const qty = Number(quantity);
     if (!selected) {
@@ -56,7 +57,13 @@ export function SaleFormModal({
       setError("La date est obligatoire.");
       return;
     }
-    onSave(selected.id, qty, date, unitPriceNum);
+    setError("");
+    setIsSubmitting(true);
+    try {
+      await onSave(selected.id, qty, date, unitPriceNum);
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
@@ -74,7 +81,7 @@ export function SaleFormModal({
             <label className="text-xs font-semibold text-slate-500 uppercase tracking-wide">Produit</label>
             <select
               value={productId}
-              onChange={(e) => handleProductChange(Number(e.target.value))}
+              onChange={(e) => handleProductChange(e.target.value)}
               className="border border-slate-200 rounded-xl px-3.5 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500"
             >
               {sellable.length === 0 && <option value="">Aucun produit en stock</option>}
@@ -141,15 +148,17 @@ export function SaleFormModal({
             <button
               type="button"
               onClick={onClose}
-              className="flex-1 py-2.5 rounded-xl text-sm font-semibold text-slate-600 bg-slate-100 hover:bg-slate-200 transition-colors cursor-pointer"
+              disabled={isSubmitting}
+              className="flex-1 py-2.5 rounded-xl text-sm font-semibold text-slate-600 bg-slate-100 hover:bg-slate-200 disabled:opacity-50 disabled:cursor-not-allowed transition-colors cursor-pointer"
             >
               Annuler
             </button>
             <button
               type="submit"
-              disabled={sellable.length === 0}
-              className="flex-1 py-2.5 rounded-xl text-sm font-bold text-white bg-green-600 hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors cursor-pointer"
+              disabled={sellable.length === 0 || isSubmitting}
+              className="flex-1 inline-flex items-center justify-center gap-2 py-2.5 rounded-xl text-sm font-bold text-white bg-green-600 hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors cursor-pointer"
             >
+              {isSubmitting && <Loader2 size={16} className="animate-spin" />}
               Enregistrer
             </button>
           </div>

@@ -19,7 +19,7 @@ export function ProductsView({
   onSearchChange: (v: string) => void;
   onAdd: () => void;
   onEdit: (item: StockItem) => void;
-  onDelete: (id: number) => void;
+  onDelete: (id: string) => void;
 }) {
   const [page, setPage] = useState(1);
 

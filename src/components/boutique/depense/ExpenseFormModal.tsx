@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { X } from "lucide-react";
+import { Loader2, X } from "lucide-react";
 import { NumberInput } from "../NumberInput";
 import { todayISO } from "../utils";
 
@@ -10,14 +10,15 @@ export function ExpenseFormModal({
   onSave,
 }: {
   onClose: () => void;
-  onSave: (label: string, amount: number, date: string) => void;
+  onSave: (label: string, amount: number, date: string) => Promise<void> | void;
 }) {
   const [label, setLabel]   = useState("");
   const [amount, setAmount] = useState("");
   const [date, setDate]     = useState(todayISO());
   const [error, setError]   = useState("");
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!label.trim()) {
       setError("Indiquez le motif de la dépense.");
@@ -32,7 +33,13 @@ export function ExpenseFormModal({
       setError("La date est obligatoire.");
       return;
     }
-    onSave(label.trim(), amountNum, date);
+    setError("");
+    setIsSubmitting(true);
+    try {
+      await onSave(label.trim(), amountNum, date);
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
@@ -83,14 +90,17 @@ export function ExpenseFormModal({
             <button
               type="button"
               onClick={onClose}
-              className="flex-1 py-2.5 rounded-xl text-sm font-semibold text-slate-600 bg-slate-100 hover:bg-slate-200 transition-colors cursor-pointer"
+              disabled={isSubmitting}
+              className="flex-1 py-2.5 rounded-xl text-sm font-semibold text-slate-600 bg-slate-100 hover:bg-slate-200 disabled:opacity-50 disabled:cursor-not-allowed transition-colors cursor-pointer"
             >
               Annuler
             </button>
             <button
               type="submit"
-              className="flex-1 py-2.5 rounded-xl text-sm font-bold text-white bg-red-600 hover:bg-red-700 transition-colors cursor-pointer"
+              disabled={isSubmitting}
+              className="flex-1 inline-flex items-center justify-center gap-2 py-2.5 rounded-xl text-sm font-bold text-white bg-red-600 hover:bg-red-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors cursor-pointer"
             >
+              {isSubmitting && <Loader2 size={16} className="animate-spin" />}
               Ajouter
             </button>
           </div>
