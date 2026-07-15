@@ -104,7 +104,10 @@ export function Sidebar({
             </div>
             <div className="min-w-0 flex-1">
               <p className="text-white text-sm font-semibold truncate">{user?.email}</p>
-              <p className="text-slate-400 text-xs">Gérante</p>
+              {/* Repère temporaire pour diagnostiquer un écart de données entre environnements (projet Firebase + UID) — à retirer une fois le souci résolu. */}
+              <p className="text-slate-500 text-[10px] truncate" title="Diagnostic">
+                {process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID} · {user?.uid.slice(0, 8)}
+              </p>
             </div>
             <button
               onClick={handleLogout}

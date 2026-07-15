@@ -82,6 +82,7 @@ export default function BoutiquePage() {
       await recordSale(uid, productId, quantity, date, unitPrice);
       setIsSaleFormOpen(false);
     } catch (err) {
+      console.error("[Firestore] recordSale error:", err);
       alert(err instanceof Error ? err.message : "Impossible d'enregistrer la vente.");
     }
   };
@@ -90,7 +91,8 @@ export default function BoutiquePage() {
     try {
       await recordExpense(uid, label, amount, date);
       setIsExpenseFormOpen(false);
-    } catch {
+    } catch (err) {
+      console.error("[Firestore] recordExpense error:", err);
       alert("Impossible d'enregistrer la dépense.");
     }
   };
@@ -118,7 +120,8 @@ export default function BoutiquePage() {
         await addProduct(uid, data);
       }
       closeForm();
-    } catch {
+    } catch (err) {
+      console.error("[Firestore] saveProduct error:", err);
       alert("Impossible d'enregistrer ce produit.");
     }
   };
@@ -134,7 +137,8 @@ export default function BoutiquePage() {
     try {
       await deleteProduct(uid, deleteTarget.id);
       setDeleteTarget(null);
-    } catch {
+    } catch (err) {
+      console.error("[Firestore] deleteProduct error:", err);
       alert("Impossible de supprimer ce produit.");
     } finally {
       setIsDeleting(false);
@@ -145,7 +149,8 @@ export default function BoutiquePage() {
     if (categories.some((c) => c.toLowerCase() === name.toLowerCase())) return;
     try {
       await addCategory(uid, name);
-    } catch {
+    } catch (err) {
+      console.error("[Firestore] addCategory error:", err);
       alert("Impossible d'ajouter cette catégorie.");
     }
   };
