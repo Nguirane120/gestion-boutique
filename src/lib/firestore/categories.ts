@@ -5,10 +5,14 @@ import { INITIAL_CATEGORIES } from "@/components/boutique/data";
 const settingsDoc = (uid: string) => doc(db, "users", uid, "settings", "general");
 
 export function subscribeCategories(uid: string, onChange: (categories: string[]) => void) {
-  return onSnapshot(settingsDoc(uid), (snapshot) => {
-    const categories = snapshot.data()?.categories as string[] | undefined;
-    onChange(categories ?? INITIAL_CATEGORIES);
-  });
+  return onSnapshot(
+    settingsDoc(uid),
+    (snapshot) => {
+      const categories = snapshot.data()?.categories as string[] | undefined;
+      onChange(categories ?? INITIAL_CATEGORIES);
+    },
+    (error) => console.error("[Firestore] categories subscription error:", error)
+  );
 }
 
 export async function addCategory(uid: string, name: string) {

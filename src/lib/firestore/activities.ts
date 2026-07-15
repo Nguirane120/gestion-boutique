@@ -16,23 +16,27 @@ const productDoc = (uid: string, productId: string) => doc(db, "users", uid, "pr
 
 export function subscribeActivities(uid: string, onChange: (activities: Activity[]) => void) {
   const q = query(activitiesRef(uid), orderBy("createdAt", "desc"));
-  return onSnapshot(q, (snapshot) => {
-    onChange(
-      snapshot.docs.map((d) => {
-        const data = d.data();
-        return {
-          id: d.id,
-          type: data.type,
-          label: data.label,
-          amount: data.amount,
-          date: data.date,
-          quantity: data.quantity,
-          unitPrice: data.unitPrice,
-          catalogPrice: data.catalogPrice,
-        } as Activity;
-      })
-    );
-  });
+  return onSnapshot(
+    q,
+    (snapshot) => {
+      onChange(
+        snapshot.docs.map((d) => {
+          const data = d.data();
+          return {
+            id: d.id,
+            type: data.type,
+            label: data.label,
+            amount: data.amount,
+            date: data.date,
+            quantity: data.quantity,
+            unitPrice: data.unitPrice,
+            catalogPrice: data.catalogPrice,
+          } as Activity;
+        })
+      );
+    },
+    (error) => console.error("[Firestore] activities subscription error:", error)
+  );
 }
 
 export async function recordSale(

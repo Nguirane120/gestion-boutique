@@ -15,21 +15,25 @@ const productsRef = (uid: string) => collection(db, "users", uid, "products");
 
 export function subscribeProducts(uid: string, onChange: (products: StockItem[]) => void) {
   const q = query(productsRef(uid), orderBy("name"));
-  return onSnapshot(q, (snapshot) => {
-    onChange(
-      snapshot.docs.map((d) => {
-        const data = d.data();
-        return {
-          id: d.id,
-          name: data.name,
-          category: data.category,
-          size: data.size,
-          price: data.price,
-          stock: data.stock,
-        } as StockItem;
-      })
-    );
-  });
+  return onSnapshot(
+    q,
+    (snapshot) => {
+      onChange(
+        snapshot.docs.map((d) => {
+          const data = d.data();
+          return {
+            id: d.id,
+            name: data.name,
+            category: data.category,
+            size: data.size,
+            price: data.price,
+            stock: data.stock,
+          } as StockItem;
+        })
+      );
+    },
+    (error) => console.error("[Firestore] products subscription error:", error)
+  );
 }
 
 export function addProduct(uid: string, data: ProductFormData) {
