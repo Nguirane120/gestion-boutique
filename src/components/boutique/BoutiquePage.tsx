@@ -4,7 +4,13 @@ import { useEffect, useState } from "react";
 import { Menu } from "lucide-react";
 import { useAuth } from "@/lib/auth/AuthContext";
 import { addCategory, subscribeCategories } from "@/lib/firestore/categories";
-import { recordExpense, recordSale, subscribeActivities } from "@/lib/firestore/activities";
+import {
+  recordExpense,
+  recordSale,
+  subscribeActivities,
+  updateExpense,
+  updateSale,
+} from "@/lib/firestore/activities";
 import { addProduct, deleteProduct, subscribeProducts, updateProduct } from "@/lib/firestore/products";
 import { NAV_HEADERS } from "./data";
 import { ConfirmDialog } from "./ConfirmDialog";
@@ -39,6 +45,8 @@ export default function BoutiquePage() {
   const [activities, setActivities]               = useState<Activity[]>([]);
   const [isSaleFormOpen, setIsSaleFormOpen]       = useState(false);
   const [isExpenseFormOpen, setIsExpenseFormOpen] = useState(false);
+  const [editingSale, setEditingSale]             = useState<Activity | null>(null);
+  const [editingExpense, setEditingExpense]       = useState<Activity | null>(null);
 
   useEffect(() => {
     const unsubscribeProducts   = subscribeProducts(uid, setProducts);
@@ -77,20 +85,58 @@ export default function BoutiquePage() {
       depensesActivities.reduce((sum, a) => sum + a.amount, 0),
   };
 
+  const openAddSale = () => {
+    setEditingSale(null);
+    setIsSaleFormOpen(true);
+  };
+
+  const openEditSale = (activity: Activity) => {
+    setEditingSale(activity);
+    setIsSaleFormOpen(true);
+  };
+
+  const closeSaleForm = () => {
+    setIsSaleFormOpen(false);
+    setEditingSale(null);
+  };
+
   const handleRecordSale = async (productId: string, quantity: number, date: string, unitPrice: number) => {
     try {
-      await recordSale(uid, productId, quantity, date, unitPrice);
-      setIsSaleFormOpen(false);
+      if (editingSale) {
+        await updateSale(uid, editingSale.id, productId, quantity, date, unitPrice);
+      } else {
+        await recordSale(uid, productId, quantity, date, unitPrice);
+      }
+      closeSaleForm();
     } catch (err) {
       console.error("[Firestore] recordSale error:", err);
       alert(err instanceof Error ? err.message : "Impossible d'enregistrer la vente.");
     }
   };
 
+  const openAddExpense = () => {
+    setEditingExpense(null);
+    setIsExpenseFormOpen(true);
+  };
+
+  const openEditExpense = (activity: Activity) => {
+    setEditingExpense(activity);
+    setIsExpenseFormOpen(true);
+  };
+
+  const closeExpenseForm = () => {
+    setIsExpenseFormOpen(false);
+    setEditingExpense(null);
+  };
+
   const handleRecordExpense = async (label: string, amount: number, date: string) => {
     try {
-      await recordExpense(uid, label, amount, date);
-      setIsExpenseFormOpen(false);
+      if (editingExpense) {
+        await updateExpense(uid, editingExpense.id, label, amount, date);
+      } else {
+        await recordExpense(uid, label, amount, date);
+      }
+      closeExpenseForm();
     } catch (err) {
       console.error("[Firestore] recordExpense error: ", err);
       alert("Impossible d'enregistrer la dépense.");
@@ -221,7 +267,8 @@ export default function BoutiquePage() {
             <VentesView
               ventes={ventesActivities}
               activePeriod={activePeriod}
-              onNewSale={() => setIsSaleFormOpen(true)}
+              onNewSale={openAddSale}
+              onEdit={openEditSale}
             />
           )}
 
@@ -229,7 +276,8 @@ export default function BoutiquePage() {
             <DepensesView
               depenses={depensesActivities}
               activePeriod={activePeriod}
-              onNewExpense={() => setIsExpenseFormOpen(true)}
+              onNewExpense={openAddExpense}
+              onEdit={openEditExpense}
             />
           )}
         </div>
@@ -248,14 +296,16 @@ export default function BoutiquePage() {
       {isSaleFormOpen && (
         <SaleFormModal
           products={products}
-          onClose={() => setIsSaleFormOpen(false)}
+          initialData={editingSale}
+          onClose={closeSaleForm}
           onSave={handleRecordSale}
         />
       )}
 
       {isExpenseFormOpen && (
         <ExpenseFormModal
-          onClose={() => setIsExpenseFormOpen(false)}
+          initialData={editingExpense}
+          onClose={closeExpenseForm}
           onSave={handleRecordExpense}
         />
       )}

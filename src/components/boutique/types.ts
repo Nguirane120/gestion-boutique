@@ -21,4 +21,5 @@ export interface Activity {
   quantity?: number; // uniquement pour les ventes
   unitPrice?: number; // prix de vente négocié, uniquement pour les ventes
   catalogPrice?: number; // prix catalogue au moment de la vente, uniquement pour les ventes
+  productId?: string; // uniquement pour les ventes
 }

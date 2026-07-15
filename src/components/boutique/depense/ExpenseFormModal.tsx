@@ -3,18 +3,21 @@
 import { useState } from "react";
 import { Loader2, X } from "lucide-react";
 import { NumberInput } from "../NumberInput";
+import type { Activity } from "../types";
 import { todayISO } from "../utils";
 
 export function ExpenseFormModal({
+  initialData,
   onClose,
   onSave,
 }: {
+  initialData: Activity | null;
   onClose: () => void;
   onSave: (label: string, amount: number, date: string) => Promise<void> | void;
 }) {
-  const [label, setLabel]   = useState("");
-  const [amount, setAmount] = useState("");
-  const [date, setDate]     = useState(todayISO());
+  const [label, setLabel]   = useState(initialData?.label ?? "");
+  const [amount, setAmount] = useState(initialData ? String(initialData.amount) : "");
+  const [date, setDate]     = useState(initialData?.date ?? todayISO());
   const [error, setError]   = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -46,7 +49,9 @@ export function ExpenseFormModal({
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/40 px-4">
       <div className="bg-white rounded-2xl shadow-xl w-full max-w-md max-h-[90vh] overflow-y-auto">
         <div className="flex items-center justify-between px-6 py-4 border-b border-slate-100">
-          <h3 className="text-base font-bold text-slate-900">Ajouter une dépense</h3>
+          <h3 className="text-base font-bold text-slate-900">
+            {initialData ? "Modifier la dépense" : "Ajouter une dépense"}
+          </h3>
           <button onClick={onClose} className="text-slate-400 hover:text-slate-600 cursor-pointer">
             <X size={18} />
           </button>
@@ -101,7 +106,7 @@ export function ExpenseFormModal({
               className="flex-1 inline-flex items-center justify-center gap-2 py-2.5 rounded-xl text-sm font-bold text-white bg-red-600 hover:bg-red-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors cursor-pointer"
             >
               {isSubmitting && <Loader2 size={16} className="animate-spin" />}
-              Ajouter
+              {initialData ? "Enregistrer" : "Ajouter"}
             </button>
           </div>
         </form>

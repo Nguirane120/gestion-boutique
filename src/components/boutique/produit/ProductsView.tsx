@@ -86,7 +86,7 @@ export function ProductsView({
               }`}
             >
               <td className="px-6 py-4 text-sm font-bold text-slate-800">{item.name}</td>
-              <td className="px-6 py-4 text-sm text-slate-500">{item.category}</td>
+              <td className="px-6 py-4 text-sm text-slate-500">{item.category || "—"}</td>
               <td className="px-6 py-4 text-sm text-slate-500">{item.size}</td>
               <td className="px-6 py-4 text-sm font-semibold text-slate-700">
                 {item.price.toLocaleString("fr-FR")} F

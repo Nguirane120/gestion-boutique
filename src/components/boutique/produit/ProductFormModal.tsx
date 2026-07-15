@@ -19,7 +19,7 @@ export function ProductFormModal({
   onSave: (data: ProductFormData) => Promise<void> | void;
 }) {
   const [name, setName]         = useState(initialData?.name ?? "");
-  const [category, setCategory] = useState(initialData?.category ?? categories[0] ?? "");
+  const [category, setCategory] = useState(initialData?.category ?? "");
   const [size, setSize]         = useState(initialData?.size ?? "");
   const [price, setPrice]       = useState(initialData ? String(initialData.price) : "");
   const [stock, setStock]       = useState(initialData ? String(initialData.stock) : "");
@@ -47,10 +47,6 @@ export function ProductFormModal({
     e.preventDefault();
     if (!name.trim() || !size.trim()) {
       setError("Le nom et la taille sont obligatoires.");
-      return;
-    }
-    if (!category) {
-      setError("Sélectionnez ou créez une catégorie.");
       return;
     }
     const priceNum = Number(price);
@@ -145,7 +141,7 @@ export function ProductFormModal({
                 onChange={(e) => setCategory(e.target.value)}
                 className="w-full border border-slate-200 rounded-xl px-3.5 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500"
               >
-                {categories.length === 0 && <option value="">Aucune catégorie</option>}
+                <option value="">Aucune catégorie</option>
                 {categories.map((c) => (
                   <option key={c} value={c}>{c}</option>
                 ))}

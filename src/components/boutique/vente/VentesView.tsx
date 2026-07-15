@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { ArrowUpRight, PlusCircle, ShoppingBag } from "lucide-react";
+import { ArrowUpRight, Pencil, PlusCircle, ShoppingBag } from "lucide-react";
 import { Pagination } from "../Pagination";
 import { formatCFA, formatDate } from "../utils";
 import type { Activity, Period } from "../types";
@@ -12,10 +12,12 @@ export function VentesView({
   ventes,
   activePeriod,
   onNewSale,
+  onEdit,
 }: {
   ventes: Activity[];
   activePeriod: Period;
   onNewSale: () => void;
+  onEdit: (activity: Activity) => void;
 }) {
   const [page, setPage] = useState(1);
   const totalPages = Math.max(1, Math.ceil(ventes.length / PAGE_SIZE));
@@ -45,7 +47,7 @@ export function VentesView({
       <table className="w-full min-w-[720px]">
         <thead className="bg-slate-50">
           <tr>
-            {["Produit", "Quantité", "Prix unitaire", "Prix de vente", "Montant", "Date"].map((h) => (
+            {["Produit", "Quantité", "Prix unitaire", "Prix de vente", "Montant", "Date", ""].map((h) => (
               <th key={h} className="px-6 py-3 text-left text-xs font-semibold text-slate-400 uppercase tracking-wide">
                 {h}
               </th>
@@ -75,11 +77,20 @@ export function VentesView({
               </td>
               <td className="px-6 py-4 text-sm font-extrabold text-green-600">+{formatCFA(act.amount)}</td>
               <td className="px-6 py-4 text-sm text-slate-400">{formatDate(act.date)}</td>
+              <td className="px-6 py-4">
+                <button
+                  onClick={() => onEdit(act)}
+                  className="p-2 rounded-lg text-slate-400 hover:text-emerald-600 hover:bg-emerald-50 transition-colors cursor-pointer"
+                  aria-label="Modifier"
+                >
+                  <Pencil size={15} />
+                </button>
+              </td>
             </tr>
           ))}
           {ventes.length === 0 && (
             <tr>
-              <td colSpan={6} className="px-6 py-10 text-center text-sm text-slate-400">
+              <td colSpan={7} className="px-6 py-10 text-center text-sm text-slate-400">
                 Aucune vente enregistrée pour le moment.
               </td>
             </tr>
