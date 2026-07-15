@@ -92,7 +92,7 @@ export default function BoutiquePage() {
       await recordExpense(uid, label, amount, date);
       setIsExpenseFormOpen(false);
     } catch (err) {
-      console.error("[Firestore] recordExpense error:", err);
+      console.error("[Firestore] recordExpense error: ", err);
       alert("Impossible d'enregistrer la dépense.");
     }
   };
